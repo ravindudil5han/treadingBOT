@@ -1,0 +1,265 @@
+2026-10-08 11:02:55 [INFO] trading_bot: Using explicitly specified symbols: ['BTC/USDT:USDT', 'ETH/USDT:USDT']
+2026-10-08 11:02:55 [INFO] trading_bot.data_feed: Warming up buffer for BTC/USDT:USDT [15m] (limit=500)...
+2026-10-08 11:03:00 [INFO] trading_bot.data_feed: Warming up buffer for BTC/USDT:USDT [1h] (limit=500)...
+2026-10-08 11:03:01 [INFO] trading_bot.ml_model: [BTC/USDT:USDT] XGBoost Training Complete | Test Acc: 96.7% | High-Conf Acc (>65%): 96.7% (60 samples)
+2026-10-08 11:03:01 [INFO] trading_bot.data_feed: Warming up buffer for ETH/USDT:USDT [15m] (limit=500)...
+2026-10-08 11:03:02 [INFO] trading_bot.data_feed: Warming up buffer for ETH/USDT:USDT [1h] (limit=500)...
+2026-10-08 11:03:02 [INFO] trading_bot.ml_model: [ETH/USDT:USDT] XGBoost Training Complete | Test Acc: 91.7% | High-Conf Acc (>65%): 91.7% (60 samples)
+2026-10-08 11:03:02 [INFO] trading_bot: Starting production trading loop...
+2026-10-08 11:13:12 [INFO] trading_bot.screener: Scanning Binance Futures universe for high-liquidity, tradable assets...
+2026-10-08 11:13:18 [INFO] trading_bot.screener: Identified 94 candidate perpetual contracts meeting minimum volume ($50,000,000).
+2026-10-08 11:13:21 [INFO] trading_bot.screener: Screening complete. Selected Top 5 coins: ['MET/USDT:USDT', 'ZEC/USDT:USDT', 'SAND/USDT:USDT', 'NEAR/USDT:USDT', 'PUMP/USDT:USDT']
+2026-10-08 11:13:21 [INFO] trading_bot.data_feed: Warming up buffer for MET/USDT:USDT [15m] (limit=500)...
+2026-10-08 11:13:22 [INFO] trading_bot.data_feed: Warming up buffer for MET/USDT:USDT [1h] (limit=500)...
+2026-10-08 11:13:23 [INFO] trading_bot.ml_model: [MET/USDT:USDT] XGBoost Training Complete | Test Acc: 26.7% | High-Conf Acc (>65%): 0.0% (6 samples)
+2026-10-08 11:13:23 [INFO] trading_bot.data_feed: Warming up buffer for ZEC/USDT:USDT [15m] (limit=500)...
+2026-10-08 11:13:23 [INFO] trading_bot.data_feed: Warming up buffer for ZEC/USDT:USDT [1h] (limit=500)...
+2026-10-08 11:13:24 [INFO] trading_bot.ml_model: [ZEC/USDT:USDT] XGBoost Training Complete | Test Acc: 53.3% | High-Conf Acc (>65%): 48.0% (25 samples)
+2026-10-08 11:13:24 [INFO] trading_bot.data_feed: Warming up buffer for SAND/USDT:USDT [15m] (limit=500)...
+2026-10-08 11:13:25 [INFO] trading_bot.data_feed: Warming up buffer for SAND/USDT:USDT [1h] (limit=500)...
+2026-10-08 11:13:26 [INFO] trading_bot.ml_model: [SAND/USDT:USDT] XGBoost Training Complete | Test Acc: 38.3% | High-Conf Acc (>65%): 100.0% (1 samples)
+2026-10-08 11:13:26 [INFO] trading_bot.data_feed: Warming up buffer for NEAR/USDT:USDT [15m] (limit=500)...
+2026-10-08 11:13:26 [INFO] trading_bot.data_feed: Warming up buffer for NEAR/USDT:USDT [1h] (limit=500)...
+2026-10-08 11:13:27 [INFO] trading_bot.ml_model: [NEAR/USDT:USDT] XGBoost Training Complete | Test Acc: 35.0% | High-Conf Acc (>65%): 33.3% (3 samples)
+2026-10-08 11:13:27 [INFO] trading_bot.data_feed: Warming up buffer for PUMP/USDT:USDT [15m] (limit=500)...
+2026-10-08 11:13:28 [INFO] trading_bot.data_feed: Warming up buffer for PUMP/USDT:USDT [1h] (limit=500)...
+2026-10-08 11:13:29 [INFO] trading_bot.ml_model: [PUMP/USDT:USDT] XGBoost Training Complete | Test Acc: 46.7% | High-Conf Acc (>65%): 50.0% (6 samples)
+2026-10-08 11:13:29 [INFO] trading_bot: Starting production trading loop...
+2026-10-08 11:15:01 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1239.38 | Lev: 8x | Size: 7.9845 ($9895.84) | Margin: $1236.98 | SL: $1220.59 | TP1: $1267.56 | TP2: $1286.35 | Conf: 68.1%
+2026-10-08 11:15:01 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1239.7518 (Slip: 0.030%) | Size: 7.9845 | Lev: 8x | Margin: $1237.35 | Fee: $4.95 | Liq: $1090.9816
+2026-10-08 11:15:01 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:03 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1239.7518)
+2026-10-08 11:15:03 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1267.1793 | Realized PnL: $106.97 (17.29%)
+2026-10-08 11:15:03 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1285.9600 | Realized PnL: $181.91 (29.40%)
+2026-10-08 11:15:07 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1239.78 | Lev: 8x | Size: 8.1921 ($10156.35) | Margin: $1269.54 | SL: $1220.95 | TP1: $1268.03 | TP2: $1286.86 | Conf: 75.4%
+2026-10-08 11:15:07 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1240.1519 (Slip: 0.030%) | Size: 8.1921 | Lev: 8x | Margin: $1269.93 | Fee: $5.08 | Liq: $1091.3337
+2026-10-08 11:15:07 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:09 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1240.1519)
+2026-10-08 11:15:09 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1267.6450 | Realized PnL: $110.02 (17.33%)
+2026-10-08 11:15:09 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1286.4697 | Realized PnL: $187.09 (29.46%)
+2026-10-08 11:15:14 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1239.92 | Lev: 8x | Size: 8.3955 ($10409.80) | Margin: $1301.22 | SL: $1221.02 | TP1: $1268.26 | TP2: $1287.16 | Conf: 65.8%
+2026-10-08 11:15:14 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1240.2920 (Slip: 0.030%) | Size: 8.3955 | Lev: 8x | Margin: $1301.61 | Fee: $5.21 | Liq: $1091.4569
+2026-10-08 11:15:14 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:16 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1240.2920)
+2026-10-08 11:15:16 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1267.8830 | Realized PnL: $113.16 (17.39%)
+2026-10-08 11:15:16 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1286.7730 | Realized PnL: $192.41 (29.57%)
+2026-10-08 11:15:19 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1239.73 | Lev: 8x | Size: 8.634 ($10703.81) | Margin: $1337.98 | SL: $1220.83 | TP1: $1268.07 | TP2: $1286.97 | Conf: 67.2%
+2026-10-08 11:15:19 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1240.1019 (Slip: 0.030%) | Size: 8.634 | Lev: 8x | Margin: $1338.38 | Fee: $5.35 | Liq: $1091.2897
+2026-10-08 11:15:19 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:21 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1240.1019)
+2026-10-08 11:15:21 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1267.6931 | Realized PnL: $116.37 (17.39%)
+2026-10-08 11:15:21 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1286.5831 | Realized PnL: $197.88 (29.57%)
+2026-10-08 11:15:25 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1240.72 | Lev: 8x | Size: 8.8511 ($10981.73) | Margin: $1372.72 | SL: $1221.76 | TP1: $1269.15 | TP2: $1288.11 | Conf: 70.4%
+2026-10-08 11:15:25 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.0922 (Slip: 0.030%) | Size: 8.8511 | Lev: 8x | Margin: $1373.13 | Fee: $5.49 | Liq: $1092.1612
+2026-10-08 11:15:25 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:28 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.0922)
+2026-10-08 11:15:28 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1268.7727 | Realized PnL: $119.69 (17.43%)
+2026-10-08 11:15:28 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1287.7227 | Realized PnL: $203.52 (29.64%)
+2026-10-08 11:15:31 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1240.55 | Lev: 8x | Size: 9.1025 ($11292.12) | Margin: $1411.51 | SL: $1221.59 | TP1: $1268.98 | TP2: $1287.94 | Conf: 66.9%
+2026-10-08 11:15:31 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1240.9222 (Slip: 0.030%) | Size: 9.1025 | Lev: 8x | Margin: $1411.94 | Fee: $5.65 | Liq: $1092.0115
+2026-10-08 11:15:31 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:33 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1240.9222)
+2026-10-08 11:15:33 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1268.6028 | Realized PnL: $123.09 (17.44%)
+2026-10-08 11:15:33 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1287.5528 | Realized PnL: $209.30 (29.65%)
+2026-10-08 11:15:37 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1240.47 | Lev: 8x | Size: 9.3611 ($11612.13) | Margin: $1451.52 | SL: $1221.51 | TP1: $1268.90 | TP2: $1287.86 | Conf: 65.2%
+2026-10-08 11:15:37 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1240.8421 (Slip: 0.030%) | Size: 9.3611 | Lev: 8x | Margin: $1451.96 | Fee: $5.81 | Liq: $1091.9411
+2026-10-08 11:15:37 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:40 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1240.8421)
+2026-10-08 11:15:40 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1268.5228 | Realized PnL: $126.59 (17.44%)
+2026-10-08 11:15:40 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1287.4728 | Realized PnL: $215.24 (29.65%)
+2026-10-08 11:15:42 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1240.49 | Lev: 8x | Size: 9.627 ($11942.17) | Margin: $1492.77 | SL: $1221.53 | TP1: $1268.92 | TP2: $1287.88 | Conf: 65.2%
+2026-10-08 11:15:42 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1240.8621 (Slip: 0.030%) | Size: 9.627 | Lev: 8x | Margin: $1493.22 | Fee: $5.97 | Liq: $1091.9587
+2026-10-08 11:15:42 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:45 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1240.8621)
+2026-10-08 11:15:45 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1268.5428 | Realized PnL: $130.19 (17.44%)
+2026-10-08 11:15:45 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1287.4928 | Realized PnL: $221.36 (29.65%)
+2026-10-08 11:15:49 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1240.56 | Lev: 8x | Size: 9.9004 ($12282.08) | Margin: $1535.26 | SL: $1221.60 | TP1: $1268.99 | TP2: $1287.95 | Conf: 66.9%
+2026-10-08 11:15:49 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1240.9322 (Slip: 0.030%) | Size: 9.9004 | Lev: 8x | Margin: $1535.72 | Fee: $6.14 | Liq: $1092.0203
+2026-10-08 11:15:49 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:51 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1240.9322)
+2026-10-08 11:15:51 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1268.6128 | Realized PnL: $133.88 (17.44%)
+2026-10-08 11:15:51 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1287.5628 | Realized PnL: $227.64 (29.65%)
+2026-10-08 11:15:56 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.23 | Lev: 8x | Size: 10.1381 ($12583.72) | Margin: $1572.97 | SL: $1222.19 | TP1: $1269.79 | TP2: $1288.82 | Conf: 69.1%
+2026-10-08 11:15:56 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.6024 (Slip: 0.030%) | Size: 10.1381 | Lev: 8x | Margin: $1573.44 | Fee: $6.29 | Liq: $1092.6101
+2026-10-08 11:15:56 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:15:58 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.6024)
+2026-10-08 11:15:58 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.4047 | Realized PnL: $137.71 (17.50%)
+2026-10-08 11:15:58 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.4361 | Realized PnL: $234.14 (29.76%)
+2026-10-08 11:16:02 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.10 | Lev: 8x | Size: 10.4238 ($12936.97) | Margin: $1617.12 | SL: $1222.06 | TP1: $1269.66 | TP2: $1288.70 | Conf: 69.3%
+2026-10-08 11:16:02 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.4723 (Slip: 0.030%) | Size: 10.4238 | Lev: 8x | Margin: $1617.61 | Fee: $6.47 | Liq: $1092.4957
+2026-10-08 11:16:02 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:04 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.4723)
+2026-10-08 11:16:04 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.2812 | Realized PnL: $141.63 (17.51%)
+2026-10-08 11:16:05 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.3168 | Realized PnL: $240.79 (29.77%)
+2026-10-08 11:16:09 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.34 | Lev: 8x | Size: 10.72 ($13307.11) | Margin: $1663.39 | SL: $1222.30 | TP1: $1269.90 | TP2: $1288.94 | Conf: 70.3%
+2026-10-08 11:16:09 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.7124 (Slip: 0.030%) | Size: 10.72 | Lev: 8x | Margin: $1663.89 | Fee: $6.66 | Liq: $1092.7069
+2026-10-08 11:16:09 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:11 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.7124)
+2026-10-08 11:16:11 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.5211 | Realized PnL: $145.65 (17.51%)
+2026-10-08 11:16:11 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.5567 | Realized PnL: $247.63 (29.77%)
+2026-10-08 11:16:15 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.65 | Lev: 8x | Size: 11.0202 ($13683.21) | Margin: $1710.40 | SL: $1222.60 | TP1: $1270.22 | TP2: $1289.27 | Conf: 77.2%
+2026-10-08 11:16:15 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1242.0225 (Slip: 0.030%) | Size: 11.0202 | Lev: 8x | Margin: $1710.92 | Fee: $6.84 | Liq: $1092.9798
+2026-10-08 11:16:15 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:18 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1242.0225)
+2026-10-08 11:16:18 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.8422 | Realized PnL: $149.79 (17.51%)
+2026-10-08 11:16:18 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.8854 | Realized PnL: $254.67 (29.77%)
+2026-10-08 11:16:20 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.70 | Lev: 8x | Size: 11.3186 ($14054.36) | Margin: $1756.79 | SL: $1222.63 | TP1: $1270.31 | TP2: $1289.38 | Conf: 71.2%
+2026-10-08 11:16:21 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1242.0725 (Slip: 0.030%) | Size: 11.3186 | Lev: 8x | Margin: $1757.32 | Fee: $7.03 | Liq: $1093.0238
+2026-10-08 11:16:21 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:23 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1242.0725)
+2026-10-08 11:16:23 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.9292 | Realized PnL: $154.06 (17.53%)
+2026-10-08 11:16:23 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.9970 | Realized PnL: $261.91 (29.81%)
+2026-10-08 11:16:25 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.77 | Lev: 8x | Size: 11.6168 ($14425.34) | Margin: $1803.17 | SL: $1222.66 | TP1: $1270.44 | TP2: $1289.55 | Conf: 67.6%
+2026-10-08 11:16:25 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1242.1425 (Slip: 0.030%) | Size: 11.6168 | Lev: 8x | Margin: $1803.72 | Fee: $7.21 | Liq: $1093.0854
+2026-10-08 11:16:25 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:28 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1242.1425)
+2026-10-08 11:16:28 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1270.0570 | Realized PnL: $158.45 (17.57%)
+2026-10-08 11:16:28 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1289.1634 | Realized PnL: $269.37 (29.87%)
+2026-10-08 11:16:32 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.41 | Lev: 8x | Size: 11.9469 ($14830.96) | Margin: $1853.87 | SL: $1222.30 | TP1: $1270.08 | TP2: $1289.19 | Conf: 66.0%
+2026-10-08 11:16:32 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.7824 (Slip: 0.030%) | Size: 11.9469 | Lev: 8x | Margin: $1854.43 | Fee: $7.42 | Liq: $1092.7685
+2026-10-08 11:16:32 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:34 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.7824)
+2026-10-08 11:16:34 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.6971 | Realized PnL: $162.95 (17.57%)
+2026-10-08 11:16:34 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.8035 | Realized PnL: $277.03 (29.88%)
+2026-10-08 11:16:38 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.03 | Lev: 8x | Size: 12.2864 ($15247.74) | Margin: $1905.97 | SL: $1221.92 | TP1: $1269.70 | TP2: $1288.81 | Conf: 68.1%
+2026-10-08 11:16:39 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.4023 (Slip: 0.030%) | Size: 12.2864 | Lev: 8x | Margin: $1906.55 | Fee: $7.63 | Liq: $1092.4340
+2026-10-08 11:16:39 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:41 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.4023)
+2026-10-08 11:16:41 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.3172 | Realized PnL: $167.59 (17.58%)
+2026-10-08 11:16:41 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.4236 | Realized PnL: $284.90 (29.89%)
+2026-10-08 11:16:44 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1240.56 | Lev: 8x | Size: 12.6355 ($15675.11) | Margin: $1959.39 | SL: $1221.45 | TP1: $1269.23 | TP2: $1288.34 | Conf: 69.4%
+2026-10-08 11:16:44 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1240.9322 (Slip: 0.030%) | Size: 12.6355 | Lev: 8x | Margin: $1959.97 | Fee: $7.84 | Liq: $1092.0203
+2026-10-08 11:16:44 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:46 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1240.9322)
+2026-10-08 11:16:46 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1268.8474 | Realized PnL: $172.35 (17.59%)
+2026-10-08 11:16:46 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1287.9537 | Realized PnL: $293.00 (29.90%)
+2026-10-08 11:16:49 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1240.67 | Lev: 8x | Size: 12.9946 ($16121.99) | Margin: $2015.25 | SL: $1221.56 | TP1: $1269.34 | TP2: $1288.45 | Conf: 69.6%
+2026-10-08 11:16:49 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.0422 (Slip: 0.030%) | Size: 12.9946 | Lev: 8x | Margin: $2015.86 | Fee: $8.06 | Liq: $1092.1171
+2026-10-08 11:16:49 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:51 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.0422)
+2026-10-08 11:16:51 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1268.9573 | Realized PnL: $177.25 (17.59%)
+2026-10-08 11:16:51 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.0637 | Realized PnL: $301.33 (29.90%)
+2026-10-08 11:16:55 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1240.86 | Lev: 8x | Size: 13.3639 ($16582.69) | Margin: $2072.84 | SL: $1221.75 | TP1: $1269.53 | TP2: $1288.64 | Conf: 69.2%
+2026-10-08 11:16:55 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.2323 (Slip: 0.030%) | Size: 13.3639 | Lev: 8x | Margin: $2073.46 | Fee: $8.29 | Liq: $1092.2844
+2026-10-08 11:16:55 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:16:57 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.2323)
+2026-10-08 11:16:57 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.1473 | Realized PnL: $182.29 (17.58%)
+2026-10-08 11:16:58 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.2536 | Realized PnL: $309.89 (29.89%)
+2026-10-08 11:17:02 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.02 | Lev: 8x | Size: 13.7436 ($17056.13) | Margin: $2132.02 | SL: $1221.91 | TP1: $1269.69 | TP2: $1288.80 | Conf: 68.1%
+2026-10-08 11:17:02 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.3923 (Slip: 0.030%) | Size: 13.7436 | Lev: 8x | Margin: $2132.65 | Fee: $8.53 | Liq: $1092.4252
+2026-10-08 11:17:02 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:17:04 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.3923)
+2026-10-08 11:17:04 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1269.3072 | Realized PnL: $187.46 (17.58%)
+2026-10-08 11:17:04 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1288.4136 | Realized PnL: $318.69 (29.89%)
+2026-10-08 11:17:08 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.77 | Lev: 8x | Size: 14.1342 ($17551.43) | Margin: $2193.93 | SL: $1222.66 | TP1: $1270.44 | TP2: $1289.55 | Conf: 67.6%
+2026-10-08 11:17:08 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1242.1425 (Slip: 0.030%) | Size: 14.1342 | Lev: 8x | Margin: $2194.59 | Fee: $8.78 | Liq: $1093.0854
+2026-10-08 11:17:08 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:17:11 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1242.1425)
+2026-10-08 11:17:11 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1270.0570 | Realized PnL: $192.79 (17.57%)
+2026-10-08 11:17:11 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1289.1634 | Realized PnL: $327.75 (29.87%)
+2026-10-08 11:17:15 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1243.01 | Lev: 8x | Size: 14.4798 ($17998.58) | Margin: $2249.82 | SL: $1223.82 | TP1: $1271.79 | TP2: $1290.98 | Conf: 75.3%
+2026-10-08 11:17:15 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1243.3829 (Slip: 0.030%) | Size: 14.4798 | Lev: 8x | Margin: $2250.49 | Fee: $9.00 | Liq: $1094.1770
+2026-10-08 11:17:15 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:17:17 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1243.3829)
+2026-10-08 11:17:17 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1271.4075 | Realized PnL: $198.29 (17.62%)
+2026-10-08 11:17:17 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1290.5877 | Realized PnL: $337.09 (29.96%)
+2026-10-08 11:17:22 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1243.51 | Lev: 8x | Size: 14.8441 ($18458.81) | Margin: $2307.35 | SL: $1224.26 | TP1: $1272.38 | TP2: $1291.63 | Conf: 74.3%
+2026-10-08 11:17:22 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1243.8831 (Slip: 0.030%) | Size: 14.8441 | Lev: 8x | Margin: $2308.04 | Fee: $9.23 | Liq: $1094.6171
+2026-10-08 11:17:22 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:17:24 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1243.8831)
+2026-10-08 11:17:24 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1271.9989 | Realized PnL: $203.96 (17.67%)
+2026-10-08 11:17:24 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1291.2402 | Realized PnL: $346.70 (30.04%)
+2026-10-08 11:17:27 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1243.38 | Lev: 8x | Size: 15.2449 ($18955.14) | Margin: $2369.39 | SL: $1224.11 | TP1: $1272.29 | TP2: $1291.56 | Conf: 68.7%
+2026-10-08 11:17:27 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1243.7530 (Slip: 0.030%) | Size: 15.2449 | Lev: 8x | Margin: $2370.11 | Fee: $9.48 | Liq: $1094.5027
+2026-10-08 11:17:27 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:17:29 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1243.7530)
+2026-10-08 11:17:29 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1271.9091 | Realized PnL: $209.77 (17.70%)
+2026-10-08 11:17:29 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1291.1772 | Realized PnL: $356.57 (30.09%)
+2026-10-08 11:18:04 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1244.38 | Lev: 8x | Size: 15.5898 ($19399.68) | Margin: $2424.96 | SL: $1225.00 | TP1: $1273.45 | TP2: $1292.84 | Conf: 67.7%
+2026-10-08 11:18:04 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1244.7533 (Slip: 0.030%) | Size: 15.5898 | Lev: 8x | Margin: $2425.68 | Fee: $9.70 | Liq: $1095.3829
+2026-10-08 11:18:04 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:18:06 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1244.7533)
+2026-10-08 11:18:06 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1273.0727 | Realized PnL: $215.79 (17.79%)
+2026-10-08 11:18:06 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1292.4500 | Realized PnL: $366.75 (30.24%)
+2026-10-08 11:18:10 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1244.47 | Lev: 8x | Size: 16.0278 ($19946.14) | Margin: $2493.27 | SL: $1225.08 | TP1: $1273.55 | TP2: $1292.94 | Conf: 68.1%
+2026-10-08 11:18:10 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1244.8433 (Slip: 0.030%) | Size: 16.0278 | Lev: 8x | Margin: $2494.01 | Fee: $9.98 | Liq: $1095.4621
+2026-10-08 11:18:10 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:18:12 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1244.8433)
+2026-10-08 11:18:12 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1273.1723 | Realized PnL: $221.92 (17.80%)
+2026-10-08 11:18:12 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1292.5561 | Realized PnL: $377.19 (30.25%)
+2026-10-08 11:18:16 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1245.70 | Lev: 8x | Size: 16.4164 ($20449.97) | Margin: $2556.25 | SL: $1226.23 | TP1: $1274.90 | TP2: $1294.37 | Conf: 72.2%
+2026-10-08 11:18:16 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1246.0737 (Slip: 0.030%) | Size: 16.4164 | Lev: 8x | Margin: $2557.01 | Fee: $10.23 | Liq: $1096.5449
+2026-10-08 11:18:16 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:18:18 [INFO] trading_bot.paper_engine: STOP-LOSS HIT: ZEC/USDT:USDT LONG at $1225.8633 | PnL: $-341.84 (-13.37%) | Returned Margin: $2557.01
+2026-10-08 11:18:23 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1246.17 | Lev: 8x | Size: 16.0938 ($20055.64) | Margin: $2506.95 | SL: $1226.64 | TP1: $1275.47 | TP2: $1295.00 | Conf: 74.9%
+2026-10-08 11:18:23 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1246.5439 (Slip: 0.030%) | Size: 16.0938 | Lev: 8x | Margin: $2507.70 | Fee: $10.03 | Liq: $1096.9586
+2026-10-08 11:18:23 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:18:25 [INFO] trading_bot.paper_engine: STOP-LOSS HIT: ZEC/USDT:USDT LONG at $1226.2710 | PnL: $-336.13 (-13.40%) | Returned Margin: $2507.70
+2026-10-08 11:18:29 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1246.66 | Lev: 8x | Size: 15.7778 ($19669.50) | Margin: $2458.69 | SL: $1227.07 | TP1: $1276.05 | TP2: $1295.64 | Conf: 70.8%
+2026-10-08 11:18:29 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1247.0340 (Slip: 0.030%) | Size: 15.7778 | Lev: 8x | Margin: $2459.43 | Fee: $9.84 | Liq: $1097.3899
+2026-10-08 11:18:29 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:18:31 [INFO] trading_bot.paper_engine: STOP-LOSS HIT: ZEC/USDT:USDT LONG at $1226.6987 | PnL: $-330.52 (-13.44%) | Returned Margin: $2459.43
+2026-10-08 11:18:35 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1246.93 | Lev: 8x | Size: 15.5045 ($19332.99) | Margin: $2416.62 | SL: $1227.32 | TP1: $1276.34 | TP2: $1295.95 | Conf: 72.1%
+2026-10-08 11:18:35 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1247.3041 (Slip: 0.030%) | Size: 15.5045 | Lev: 8x | Margin: $2417.35 | Fee: $9.67 | Liq: $1097.6276
+2026-10-08 11:18:35 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:18:35 [INFO] trading_bot.risk_manager: Trade Setup Approved: SAND/USDT:USDT SHORT | Entry: $0.07 | Lev: 6x | Size: 198193.6839 ($14791.19) | Margin: $2465.20 | SL: $0.08 | TP1: $0.07 | TP2: $0.07 | Conf: 65.5%
+2026-10-08 11:18:35 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | SAND/USDT:USDT SHORT | ExecPrice: $0.0746 (Slip: 0.030%) | Size: 198193.6839 | Lev: 6x | Margin: $2464.46 | Fee: $7.39 | Liq: $0.0867
+2026-10-08 11:18:35 [INFO] trading_bot: Successfully simulated paper order for SAND/USDT:USDT SHORT
+2026-10-08 11:18:37 [INFO] trading_bot.paper_engine: STOP-LOSS HIT: ZEC/USDT:USDT LONG at $1226.9526 | PnL: $-325.05 (-13.45%) | Returned Margin: $2417.35
+2026-10-08 11:18:37 [CRITICAL] trading_bot.paper_engine: POSITION LIQUIDATED! SAND/USDT:USDT SHORT at $0.0867. Loss: $-2464.46
+2026-10-08 11:18:41 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1246.19 | Lev: 8x | Size: 13.3576 ($16646.10) | Margin: $2080.76 | SL: $1226.58 | TP1: $1275.60 | TP2: $1295.21 | Conf: 67.0%
+2026-10-08 11:18:41 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1246.5639 (Slip: 0.030%) | Size: 13.3576 | Lev: 8x | Margin: $2081.39 | Fee: $8.33 | Liq: $1096.9762
+2026-10-08 11:18:41 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:18:41 [INFO] trading_bot.risk_manager: Trade Setup Approved: SAND/USDT:USDT SHORT | Entry: $0.07 | Lev: 6x | Size: 170750.1997 ($12744.79) | Margin: $2124.13 | SL: $0.08 | TP1: $0.07 | TP2: $0.07 | Conf: 67.6%
+2026-10-08 11:18:41 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | SAND/USDT:USDT SHORT | ExecPrice: $0.0746 (Slip: 0.030%) | Size: 170750.1997 | Lev: 6x | Margin: $2123.50 | Fee: $6.37 | Liq: $0.0867
+2026-10-08 11:18:41 [INFO] trading_bot: Successfully simulated paper order for SAND/USDT:USDT SHORT
+2026-10-08 11:18:42 [INFO] trading_bot.paper_engine: STOP-LOSS HIT: ZEC/USDT:USDT LONG at $1226.2128 | PnL: $-280.03 (-13.45%) | Returned Margin: $2081.39
+2026-10-08 11:18:43 [CRITICAL] trading_bot.paper_engine: POSITION LIQUIDATED! SAND/USDT:USDT SHORT at $0.0867. Loss: $-2123.50
+2026-10-08 11:18:52 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.20 | Lev: 8x | Size: 11.5078 ($14283.46) | Margin: $1785.43 | SL: $1221.59 | TP1: $1270.61 | TP2: $1290.22 | Conf: 65.1%
+2026-10-08 11:18:52 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.5724 (Slip: 0.030%) | Size: 11.5078 | Lev: 8x | Margin: $1785.97 | Fee: $7.14 | Liq: $1092.5837
+2026-10-08 11:18:52 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:18:54 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.5724)
+2026-10-08 11:18:54 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1270.2327 | Realized PnL: $161.25 (18.06%)
+2026-10-08 11:18:54 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1289.8360 | Realized PnL: $273.99 (30.68%)
+2026-10-08 11:19:11 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.20 | Lev: 8x | Size: 11.8353 ($14689.93) | Margin: $1836.24 | SL: $1221.59 | TP1: $1270.61 | TP2: $1290.22 | Conf: 65.1%
+2026-10-08 11:19:11 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.5724 (Slip: 0.030%) | Size: 11.8353 | Lev: 8x | Margin: $1836.80 | Fee: $7.35 | Liq: $1092.5837
+2026-10-08 11:19:11 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:19:13 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.5724)
+2026-10-08 11:19:13 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1270.2327 | Realized PnL: $165.84 (18.06%)
+2026-10-08 11:19:13 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1289.8360 | Realized PnL: $281.79 (30.68%)
+2026-10-08 11:19:17 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.18 | Lev: 8x | Size: 12.1721 ($15107.72) | Margin: $1888.46 | SL: $1221.57 | TP1: $1270.59 | TP2: $1290.20 | Conf: 65.1%
+2026-10-08 11:19:17 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.5524 (Slip: 0.030%) | Size: 12.1721 | Lev: 8x | Margin: $1889.04 | Fee: $7.56 | Liq: $1092.5661
+2026-10-08 11:19:17 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:19:20 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.5524)
+2026-10-08 11:19:20 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1270.2127 | Realized PnL: $170.56 (18.06%)
+2026-10-08 11:19:20 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1289.8160 | Realized PnL: $289.81 (30.68%)
+2026-10-08 11:19:55 [INFO] trading_bot.risk_manager: Trade Setup Approved: ZEC/USDT:USDT LONG | Entry: $1241.15 | Lev: 8x | Size: 12.5184 ($15537.26) | Margin: $1942.16 | SL: $1221.54 | TP1: $1270.56 | TP2: $1290.17 | Conf: 65.5%
+2026-10-08 11:19:55 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | ZEC/USDT:USDT LONG | ExecPrice: $1241.5223 (Slip: 0.030%) | Size: 12.5184 | Lev: 8x | Margin: $1942.73 | Fee: $7.77 | Liq: $1092.5397
+2026-10-08 11:19:55 [INFO] trading_bot: Successfully simulated paper order for ZEC/USDT:USDT LONG
+2026-10-08 11:19:58 [INFO] trading_bot.paper_engine: [ZEC/USDT:USDT] TP1 Hit! Moved Stop-Loss to Breakeven ($1241.5223)
+2026-10-08 11:19:58 [INFO] trading_bot.paper_engine: TAKE-PROFIT 1 HIT: ZEC/USDT:USDT LONG closed 50% at $1270.1827 | Realized PnL: $175.42 (18.06%)
+2026-10-08 11:19:58 [INFO] trading_bot.paper_engine: TAKE-PROFIT 2 FULL EXIT: ZEC/USDT:USDT LONG closed remaining at $1289.7860 | Realized PnL: $298.06 (30.68%)
+2026-10-08 11:24:14 [INFO] trading_bot.risk_manager: Trade Setup Approved: SAND/USDT:USDT SHORT | Entry: $0.07 | Lev: 6x | Size: 164655.5142 ($12289.89) | Margin: $2048.31 | SL: $0.08 | TP1: $0.07 | TP2: $0.07 | Conf: 67.7%
+2026-10-08 11:24:14 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | SAND/USDT:USDT SHORT | ExecPrice: $0.0746 (Slip: 0.030%) | Size: 164655.5142 | Lev: 6x | Margin: $2047.70 | Fee: $6.14 | Liq: $0.0867
+2026-10-08 11:24:14 [INFO] trading_bot: Successfully simulated paper order for SAND/USDT:USDT SHORT
+2026-10-08 11:24:16 [CRITICAL] trading_bot.paper_engine: POSITION LIQUIDATED! SAND/USDT:USDT SHORT at $0.0867. Loss: $-2047.70
+2026-10-08 11:24:20 [INFO] trading_bot.risk_manager: Trade Setup Approved: SAND/USDT:USDT SHORT | Entry: $0.07 | Lev: 6x | Size: 144562.8254 ($10794.51) | Margin: $1799.08 | SL: $0.08 | TP1: $0.07 | TP2: $0.07 | Conf: 66.5%
+2026-10-08 11:24:20 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | SAND/USDT:USDT SHORT | ExecPrice: $0.0746 (Slip: 0.030%) | Size: 144562.8254 | Lev: 6x | Margin: $1798.54 | Fee: $5.40 | Liq: $0.0867
+2026-10-08 11:24:20 [INFO] trading_bot: Successfully simulated paper order for SAND/USDT:USDT SHORT
+2026-10-08 11:24:22 [CRITICAL] trading_bot.paper_engine: POSITION LIQUIDATED! SAND/USDT:USDT SHORT at $0.0867. Loss: $-1798.54
+2026-10-08 11:24:27 [INFO] trading_bot.risk_manager: Trade Setup Approved: SAND/USDT:USDT SHORT | Entry: $0.07 | Lev: 6x | Size: 126914.9298 ($9475.47) | Margin: $1579.24 | SL: $0.08 | TP1: $0.07 | TP2: $0.07 | Conf: 68.1%
+2026-10-08 11:24:27 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | SAND/USDT:USDT SHORT | ExecPrice: $0.0746 (Slip: 0.030%) | Size: 126914.9298 | Lev: 6x | Margin: $1578.77 | Fee: $4.74 | Liq: $0.0867
+2026-10-08 11:24:27 [INFO] trading_bot: Successfully simulated paper order for SAND/USDT:USDT SHORT
+2026-10-08 11:24:29 [CRITICAL] trading_bot.paper_engine: POSITION LIQUIDATED! SAND/USDT:USDT SHORT at $0.0867. Loss: $-1578.77
+2026-10-08 11:24:58 [INFO] trading_bot.risk_manager: Trade Setup Approved: SAND/USDT:USDT SHORT | Entry: $0.07 | Lev: 6x | Size: 110727.1545 ($8273.53) | Margin: $1378.92 | SL: $0.08 | TP1: $0.07 | TP2: $0.07 | Conf: 68.4%
+2026-10-08 11:24:58 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | SAND/USDT:USDT SHORT | ExecPrice: $0.0747 (Slip: 0.030%) | Size: 110727.1545 | Lev: 6x | Margin: $1378.51 | Fee: $4.14 | Liq: $0.0868
+2026-10-08 11:24:58 [INFO] trading_bot: Successfully simulated paper order for SAND/USDT:USDT SHORT
+2026-10-08 11:25:00 [CRITICAL] trading_bot.paper_engine: POSITION LIQUIDATED! SAND/USDT:USDT SHORT at $0.0868. Loss: $-1378.51
+2026-10-08 11:25:03 [INFO] trading_bot.risk_manager: Trade Setup Approved: SAND/USDT:USDT SHORT | Entry: $0.07 | Lev: 6x | Size: 97285.3245 ($7272.08) | Margin: $1212.01 | SL: $0.08 | TP1: $0.07 | TP2: $0.07 | Conf: 65.6%
+2026-10-08 11:25:03 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | SAND/USDT:USDT SHORT | ExecPrice: $0.0747 (Slip: 0.030%) | Size: 97285.3245 | Lev: 6x | Margin: $1211.65 | Fee: $3.63 | Liq: $0.0868
+2026-10-08 11:25:03 [INFO] trading_bot: Successfully simulated paper order for SAND/USDT:USDT SHORT
+2026-10-08 11:25:05 [CRITICAL] trading_bot.paper_engine: POSITION LIQUIDATED! SAND/USDT:USDT SHORT at $0.0868. Loss: $-1211.65
+2026-10-08 11:25:09 [INFO] trading_bot.risk_manager: Trade Setup Approved: SAND/USDT:USDT SHORT | Entry: $0.07 | Lev: 6x | Size: 85470.5366 ($6388.92) | Margin: $1064.82 | SL: $0.08 | TP1: $0.07 | TP2: $0.07 | Conf: 65.6%
+2026-10-08 11:25:09 [INFO] trading_bot.paper_engine: EXEC ORDER OPEN | SAND/USDT:USDT SHORT | ExecPrice: $0.0747 (Slip: 0.030%) | Size: 85470.5366 | Lev: 6x | Margin: $1064.50 | Fee: $3.19 | Liq: $0.0868
+2026-10-08 11:25:09 [INFO] trading_bot: Successfully simulated paper order for SAND/USDT:USDT SHORT
+2026-10-08 11:25:11 [CRITICAL] trading_bot.paper_engine: POSITION LIQUIDATED! SAND/USDT:USDT SHORT at $0.0868. Loss: $-1064.50
