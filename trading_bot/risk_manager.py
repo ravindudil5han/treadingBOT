@@ -88,7 +88,8 @@ class RiskManager:
         available_balance: float,
         open_positions_count: int,
         total_open_margin: float,
-        existing_symbol_position: Optional[str] = None
+        existing_symbol_position: Optional[str] = None,
+        features_dict: Optional[Dict[str, float]] = None
     ) -> TradeOrderSignal:
         """Evaluate signal and account state to generate complete trade order parameters.
 
@@ -101,6 +102,7 @@ class RiskManager:
             open_positions_count: Current number of active positions
             total_open_margin: Sum of isolated margins currently tied up
             existing_symbol_position: Active direction for this symbol ("LONG"/"SHORT"/None)
+            features_dict: Latest technical indicators dictionary for sniper confluence gating
 
         Returns:
             TradeOrderSignal: Validated trade setup or rejected signal with audit reason.
@@ -153,6 +155,117 @@ class RiskManager:
                 is_valid=False,
                 rejection_reason=f"Model confidence ({conf_pct:.1f}%) below required threshold"
             )
+
+        # -------------------------------------------------------------
+        # Sniper Mode Confluence Verification (High Win Rate Protection)
+        # -------------------------------------------------------------
+        if self.cfg.sniper_mode and features_dict:
+            adx_val = features_dict.get("adx", 25.0)
+            if adx_val < self.cfg.adx_threshold:
+                return TradeOrderSignal(
+                    symbol=symbol,
+                    direction=direction,
+                    entry_price=entry_price,
+                    recommended_leverage=self.cfg.min_leverage,
+                    sl_price=entry_price,
+                    tp1_price=entry_price,
+                    tp2_price=entry_price,
+                    position_size=0.0,
+                    notional_usd=0.0,
+                    margin_usd=0.0,
+                    risk_usd=0.0,
+                    risk_pct=0.0,
+                    confidence_score=conf_pct,
+                    atr=atr,
+                    timestamp=time.time(),
+                    is_valid=False,
+                    rejection_reason=f"Sniper Gate: ADX ({adx_val:.1f}) < {self.cfg.adx_threshold} (Choppy/Rangebound)"
+                )
+
+            rsi_val = features_dict.get("rsi", 50.0)
+            if direction == "LONG" and rsi_val > 72.0:
+                return TradeOrderSignal(
+                    symbol=symbol,
+                    direction=direction,
+                    entry_price=entry_price,
+                    recommended_leverage=self.cfg.min_leverage,
+                    sl_price=entry_price,
+                    tp1_price=entry_price,
+                    tp2_price=entry_price,
+                    position_size=0.0,
+                    notional_usd=0.0,
+                    margin_usd=0.0,
+                    risk_usd=0.0,
+                    risk_pct=0.0,
+                    confidence_score=conf_pct,
+                    atr=atr,
+                    timestamp=time.time(),
+                    is_valid=False,
+                    rejection_reason=f"Sniper Gate: RSI Overbought ({rsi_val:.1f} > 72.0)"
+                )
+            elif direction == "SHORT" and rsi_val < 28.0:
+                return TradeOrderSignal(
+                    symbol=symbol,
+                    direction=direction,
+                    entry_price=entry_price,
+                    recommended_leverage=self.cfg.min_leverage,
+                    sl_price=entry_price,
+                    tp1_price=entry_price,
+                    tp2_price=entry_price,
+                    position_size=0.0,
+                    notional_usd=0.0,
+                    margin_usd=0.0,
+                    risk_usd=0.0,
+                    risk_pct=0.0,
+                    confidence_score=conf_pct,
+                    atr=atr,
+                    timestamp=time.time(),
+                    is_valid=False,
+                    rejection_reason=f"Sniper Gate: RSI Oversold ({rsi_val:.1f} < 28.0)"
+                )
+
+            if self.cfg.macro_trend_filter:
+                dist_50 = features_dict.get("dist_ema_50", 0.0)
+                if direction == "LONG" and dist_50 < -0.015:
+                    return TradeOrderSignal(
+                        symbol=symbol,
+                        direction=direction,
+                        entry_price=entry_price,
+                        recommended_leverage=self.cfg.min_leverage,
+                        sl_price=entry_price,
+                        tp1_price=entry_price,
+                        tp2_price=entry_price,
+                        position_size=0.0,
+                        notional_usd=0.0,
+                        margin_usd=0.0,
+                        risk_usd=0.0,
+                        risk_pct=0.0,
+                        confidence_score=conf_pct,
+                        atr=atr,
+                        timestamp=time.time(),
+                        is_valid=False,
+                        rejection_reason="Sniper Gate: Macro Trend conflict (Price below EMA 50)"
+                    )
+                elif direction == "SHORT" and dist_50 > 0.015:
+                    return TradeOrderSignal(
+                        symbol=symbol,
+                        direction=direction,
+                        entry_price=entry_price,
+                        recommended_leverage=self.cfg.min_leverage,
+                        sl_price=entry_price,
+                        tp1_price=entry_price,
+                        tp2_price=entry_price,
+                        position_size=0.0,
+                        notional_usd=0.0,
+                        margin_usd=0.0,
+                        risk_usd=0.0,
+                        risk_pct=0.0,
+                        confidence_score=conf_pct,
+                        atr=atr,
+                        timestamp=time.time(),
+                        is_valid=False,
+                        rejection_reason="Sniper Gate: Macro Trend conflict (Price above EMA 50)"
+                    )
 
         if open_positions_count >= self.cfg.max_open_positions:
             return TradeOrderSignal(
@@ -215,24 +328,33 @@ class RiskManager:
             tp2_price = entry_price - (self.cfg.tp2_risk_reward * risk_distance)
 
         # -------------------------------------------------------------
-        # 3. Dynamic Position Sizing (Fixed Fractional Risk Model)
+        # 3. Dynamic Position Sizing ($5 Micro-Account Adaptations)
         # -------------------------------------------------------------
-        # Risk amount in dollars = account_equity * max_risk_per_trade_pct
-        max_dollar_risk = account_equity * self.cfg.max_risk_per_trade_pct
         per_contract_risk = abs(entry_price - sl_price)
-
         if per_contract_risk <= 0:
             per_contract_risk = entry_price * 0.01
 
-        # Quantity = Max Dollar Risk / Per Unit Risk
-        raw_quantity = max_dollar_risk / per_contract_risk
-        notional_usd = raw_quantity * entry_price
-        required_margin = notional_usd / leverage
+        # Check if in micro-account mode (e.g. starting with $5)
+        if self.cfg.micro_account_mode and account_equity <= 30.0:
+            # For a $5 wallet, allocate 35% - 50% margin per position at 4x - 6x leverage
+            # Example: $2.00 margin at 5x leverage gives $10.00 notional (exceeds $5 min notional)
+            usable_margin = max(1.20, available_balance * 0.50)
+            target_notional = max(self.cfg.min_notional_usd, usable_margin * leverage)
+            raw_quantity = target_notional / entry_price
+            notional_usd = raw_quantity * entry_price
+            required_margin = notional_usd / leverage
+            actual_dollar_risk = raw_quantity * per_contract_risk
+        else:
+            # Standard fixed fractional risk model
+            max_dollar_risk = account_equity * self.cfg.max_risk_per_trade_pct
+            raw_quantity = max_dollar_risk / per_contract_risk
+            notional_usd = raw_quantity * entry_price
+            required_margin = notional_usd / leverage
+            actual_dollar_risk = max_dollar_risk
 
         # -------------------------------------------------------------
         # 4. Capital & Exposure Constraints
         # -------------------------------------------------------------
-        # Capital check 1: Margin must not exceed 90% of available cash balance
         max_usable_margin = available_balance * 0.90
         if required_margin > max_usable_margin:
             scale_factor = max_usable_margin / (required_margin + 1e-8)
@@ -240,11 +362,10 @@ class RiskManager:
             notional_usd = raw_quantity * entry_price
             required_margin = notional_usd / leverage
 
-        # Capital check 2: Portfolio exposure cap
         max_total_margin = account_equity * self.cfg.max_portfolio_exposure_pct
         if (total_open_margin + required_margin) > max_total_margin:
             remaining_margin_capacity = max(0.0, max_total_margin - total_open_margin)
-            if remaining_margin_capacity < 15.0:  # Minimum viable margin threshold
+            if remaining_margin_capacity < 1.0:
                 return TradeOrderSignal(
                     symbol=symbol,
                     direction=direction,
@@ -273,11 +394,11 @@ class RiskManager:
         precision = 4 if entry_price < 10.0 else (3 if entry_price < 1000.0 else 4)
         position_size = round(raw_quantity, precision)
 
-        # Recalculate exact dollar risk after precision rounding
         actual_dollar_risk = position_size * per_contract_risk
         actual_risk_pct = (actual_dollar_risk / account_equity) * 100.0 if account_equity > 0 else 0.0
 
-        if position_size <= 0 or notional_usd < 10.0:  # Binance minimum order notional usually $5 - $10
+        min_floor = self.cfg.min_notional_usd if self.cfg.micro_account_mode else 10.0
+        if position_size <= 0 or notional_usd < min_floor:
             return TradeOrderSignal(
                 symbol=symbol,
                 direction=direction,
@@ -295,7 +416,7 @@ class RiskManager:
                 atr=atr,
                 timestamp=time.time(),
                 is_valid=False,
-                rejection_reason="Position notional below minimum threshold ($10.00)"
+                rejection_reason=f"Position notional (${notional_usd:.2f}) below minimum floor (${min_floor:.2f})"
             )
 
         logger.info(

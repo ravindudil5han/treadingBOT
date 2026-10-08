@@ -23,14 +23,18 @@ logger = logging.getLogger("trading_bot.screener")
 
 @dataclass
 class ScreenedCoin:
-    """Metadata and quantitative metrics for a screened cryptocurrency asset."""
+    """Metadata and quantitative alpha metrics for a screened cryptocurrency asset."""
     symbol: str
     base_asset: str
     last_price: float
     volume_24h_usd: float
     atr_14: float
     atr_pct: float
-    composite_score: float
+    rvol: float = 1.0  # Relative volume (volume / 20-period moving average)
+    ker: float = 0.0   # Kaufman's Efficiency Ratio (0 = pure noise, 1 = clean trend)
+    funding_rate: float = 0.0  # Perpetual funding rate (e.g. 0.0001 = 0.01%)
+    squeeze_bias: str = "NEUTRAL"  # "SHORT_SQUEEZE", "LONG_SQUEEZE", "NEUTRAL"
+    composite_score: float = 0.0
     rank: int = 0
 
     def to_dict(self) -> Dict:
@@ -42,7 +46,11 @@ class ScreenedCoin:
             "volume_24h_usd": self.volume_24h_usd,
             "atr_14": self.atr_14,
             "atr_pct": self.atr_pct,
-            "composite_score": self.composite_score,
+            "rvol": round(self.rvol, 2),
+            "ker": round(self.ker, 3),
+            "funding_rate": round(self.funding_rate * 100.0, 4),
+            "squeeze_bias": self.squeeze_bias,
+            "composite_score": round(self.composite_score, 3),
         }
 
 
@@ -151,7 +159,7 @@ class FuturesScreener:
         for cand in inspection_pool:
             sym = cand["symbol"]
             try:
-                # Fetch small historical candle sample (e.g. 30 bars of 1h) to calculate clean ATR
+                # Fetch historical candle sample (30 bars of 1h) to calculate clean ATR, KER, and RVOL
                 df = self.data_feed.fetch_ohlcv(sym, timeframe="1h", limit=30)
                 if len(df) < 15:
                     continue
@@ -167,6 +175,26 @@ class FuturesScreener:
                 price_val = float(cand["last_price"])
                 atr_pct = (atr_val / price_val) * 100.0 if price_val > 0 else 0.0
 
+                # 1. Kaufman's Efficiency Ratio (KER): Trend purity vs random noise
+                change_14 = abs(df["close"].iloc[-1] - df["close"].iloc[-14])
+                path_14 = df["close"].diff().abs().iloc[-14:].sum()
+                ker_val = float(change_14 / (path_14 + 1e-9))
+
+                # 2. Relative Volume (RVOL)
+                vol_window = min(len(df) - 1, self.cfg.rvol_window)
+                avg_vol = df["volume"].iloc[-vol_window:-1].mean() if vol_window > 1 else df["volume"].iloc[-1]
+                rvol_val = float(df["volume"].iloc[-1] / (avg_vol + 1e-8))
+
+                # 3. Perpetual Funding Rate & Squeeze Bias
+                funding_meta = self.data_feed.fetch_funding_rate(sym)
+                funding_val = float(funding_meta.get("funding_rate", 0.0))
+
+                squeeze_bias = "NEUTRAL"
+                if funding_val < -0.00015:
+                    squeeze_bias = "SHORT_SQUEEZE"
+                elif funding_val > 0.00030:
+                    squeeze_bias = "LONG_SQUEEZE"
+
                 # Filter by minimum volatility
                 if atr_pct >= self.cfg.min_volatility_pct:
                     screened_pool.append(ScreenedCoin(
@@ -176,10 +204,14 @@ class FuturesScreener:
                         volume_24h_usd=cand["volume_24h_usd"],
                         atr_14=atr_val,
                         atr_pct=atr_pct,
+                        rvol=rvol_val,
+                        ker=ker_val,
+                        funding_rate=funding_val,
+                        squeeze_bias=squeeze_bias,
                         composite_score=0.0
                     ))
             except Exception as e:
-                logger.debug(f"Error calculating ATR for candidate {sym}: {e}")
+                logger.debug(f"Error calculating alpha metrics for candidate {sym}: {e}")
                 continue
 
         if not screened_pool:
@@ -192,23 +224,46 @@ class FuturesScreener:
                     volume_24h_usd=cand["volume_24h_usd"],
                     atr_14=cand["last_price"] * 0.015,
                     atr_pct=1.5,
+                    rvol=1.0,
+                    ker=0.35,
+                    funding_rate=0.0001,
+                    squeeze_bias="NEUTRAL",
                     composite_score=0.0
                 ))
 
-        # Calculate composite score = 0.40 * norm_vol + 0.60 * norm_atr_pct
+        # -------------------------------------------------------------
+        # Institutional Multi-Factor Alpha Ranking
+        # Combines Trend Efficiency (KER 35%), Relative Volume (RVOL 30%),
+        # Volatility (ATR% 20%), and Funding Disparity (15%)
+        # -------------------------------------------------------------
         vols = np.array([c.volume_24h_usd for c in screened_pool])
         atrs = np.array([c.atr_pct for c in screened_pool])
+        kers = np.array([c.ker for c in screened_pool])
+        rvols = np.array([c.rvol for c in screened_pool])
+        fundings = np.array([abs(c.funding_rate) for c in screened_pool])
 
-        vol_min, vol_max = vols.min(), vols.max()
-        atr_min, atr_max = atrs.min(), atrs.max()
+        def _min_max_norm(arr: np.ndarray) -> np.ndarray:
+            diff = arr.max() - arr.min()
+            return (arr - arr.min()) / (diff + 1e-9) if diff > 0 else np.zeros_like(arr)
 
-        norm_vols = (vols - vol_min) / (vol_max - vol_min + 1e-9)
-        norm_atrs = (atrs - atr_min) / (atr_max - atr_min + 1e-9)
+        norm_vols = _min_max_norm(vols)
+        norm_atrs = _min_max_norm(atrs)
+        norm_kers = _min_max_norm(kers)
+        norm_rvols = _min_max_norm(rvols)
+        norm_fund = _min_max_norm(fundings)
 
         for i, coin in enumerate(screened_pool):
-            coin.composite_score = float(0.40 * norm_vols[i] + 0.60 * norm_atrs[i])
+            if self.cfg.use_institutional_ranking:
+                coin.composite_score = float(
+                    0.35 * norm_kers[i] +
+                    0.25 * norm_rvols[i] +
+                    0.25 * norm_atrs[i] +
+                    0.15 * norm_fund[i]
+                )
+            else:
+                coin.composite_score = float(0.40 * norm_vols[i] + 0.60 * norm_atrs[i])
 
-        # Rank candidates by composite score descending
+        # Rank candidates by composite alpha score descending
         screened_pool.sort(key=lambda x: x.composite_score, reverse=True)
 
         for rank, coin in enumerate(screened_pool[:self.cfg.top_n], start=1):
@@ -218,7 +273,7 @@ class FuturesScreener:
         self.last_screened_time = now
 
         logger.info(
-            f"Screening complete. Selected Top {len(self.cached_top_coins)} coins: "
-            f"{[c.symbol for c in self.cached_top_coins]}"
+            f"Institutional Alpha Screening complete. Selected Top {len(self.cached_top_coins)} coins: "
+            f"{[(c.symbol, f'KER:{c.ker:.2f}', f'RVOL:{c.rvol:.1f}', f'Score:{c.composite_score:.2f}') for c in self.cached_top_coins]}"
         )
         return self.cached_top_coins

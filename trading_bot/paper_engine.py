@@ -41,6 +41,10 @@ class PaperPosition:
     tp1_price: float
     tp2_price: float
     tp1_hit: bool = False
+    trailing_stop_active: bool = False
+    highest_price: float = 0.0
+    lowest_price: float = 0.0
+    atr: float = 0.0
     liquidation_price: float = 0.0
     accumulated_fees: float = 0.0
     entry_time: float = field(default_factory=time.time)
@@ -290,6 +294,10 @@ class PaperExecutionEngine:
             tp1_price=signal.tp1_price,
             tp2_price=signal.tp2_price,
             tp1_hit=False,
+            trailing_stop_active=False,
+            highest_price=executed_price,
+            lowest_price=executed_price,
+            atr=signal.atr,
             liquidation_price=liq_price,
             accumulated_fees=entry_fee,
             entry_time=time.time(),
@@ -367,6 +375,24 @@ class PaperExecutionEngine:
         high = candle_high if candle_high is not None else current_price
         low = candle_low if candle_low is not None else current_price
 
+        # Update price extremes
+        pos.highest_price = max(pos.highest_price, high)
+        pos.lowest_price = min(pos.lowest_price, low)
+
+        # Dynamic ATR Trailing Stop Ratchet
+        if pos.trailing_stop_active and self.risk_cfg.trailing_stop_enabled:
+            trail_dist = (self.risk_cfg.trailing_stop_atr_multiplier * pos.atr) if pos.atr > 0 else (pos.entry_price * 0.015)
+            if pos.side == "LONG":
+                ratchet_sl = pos.highest_price - trail_dist
+                if ratchet_sl > pos.sl_price:
+                    pos.sl_price = ratchet_sl
+                    logger.debug(f"[{symbol}] Ratcheted LONG Trailing Stop up to ${ratchet_sl:.4f}")
+            elif pos.side == "SHORT":
+                ratchet_sl = pos.lowest_price + trail_dist
+                if ratchet_sl < pos.sl_price:
+                    pos.sl_price = ratchet_sl
+                    logger.debug(f"[{symbol}] Ratcheted SHORT Trailing Stop down to ${ratchet_sl:.4f}")
+
         slip = self.paper_cfg.slippage_pct
         actions: List[Dict[str, Any]] = []
 
@@ -381,7 +407,6 @@ class PaperExecutionEngine:
 
         if is_liquidated:
             exit_price = pos.liquidation_price
-            # Total margin is forfeited
             realized_pnl = -pos.isolated_margin
             fee = (pos.size * exit_price) * self.paper_cfg.taker_fee_pct
             self.total_fees_paid += fee
@@ -410,135 +435,7 @@ class PaperExecutionEngine:
             return [event]
 
         # =============================================================
-        # 2. STOP-LOSS CHECK
-        # =============================================================
-        is_sl_hit = False
-        if pos.side == "LONG" and low <= pos.sl_price:
-            is_sl_hit = True
-            exit_price = pos.sl_price * (1.0 - slip)  # adverse slippage
-        elif pos.side == "SHORT" and high >= pos.sl_price:
-            is_sl_hit = True
-            exit_price = pos.sl_price * (1.0 + slip)
-
-        if is_sl_hit:
-            exit_notional = pos.size * exit_price
-            exit_fee = exit_notional * self.paper_cfg.taker_fee_pct
-
-            # Calculate PnL
-            if pos.side == "LONG":
-                gross_pnl = (exit_price - pos.entry_price) * pos.size
-            else:
-                gross_pnl = (pos.entry_price - exit_price) * pos.size
-
-            net_pnl = gross_pnl - exit_fee
-            # Return remaining margin + net PnL back to balance
-            self.balance += (pos.isolated_margin + net_pnl)
-            self.realized_pnl_total += net_pnl
-            self.total_fees_paid += exit_fee
-
-            roi = (net_pnl / pos.isolated_margin) * 100.0 if pos.isolated_margin > 0 else 0.0
-
-            self._record_trade_close(
-                pos=pos,
-                exit_price=exit_price,
-                realized_pnl=net_pnl,
-                exit_reason="STOP_LOSS" if not pos.tp1_hit else "BREAKEVEN_STOP",
-                exit_fee=exit_fee
-            )
-            del self.positions[symbol]
-            self._persist_wallet_state()
-
-            event = {
-                "type": "STOP_LOSS" if not pos.tp1_hit else "BREAKEVEN_STOP",
-                "symbol": symbol,
-                "side": pos.side,
-                "exit_price": exit_price,
-                "pnl": net_pnl,
-                "roi": roi,
-                "time": datetime.now(timezone.utc).strftime("%H:%M:%S")
-            }
-            self.recent_events.append(event)
-            logger.info(
-                f"STOP-LOSS HIT: {symbol} {pos.side} at ${exit_price:.4f} | "
-                f"PnL: ${net_pnl:.2f} ({roi:.2f}%) | Returned Margin: ${pos.isolated_margin:.2f}"
-            )
-            return [event]
-
-        # =============================================================
-        # 3. TAKE-PROFIT 1 CHECK (Partial Close + Move SL to Breakeven)
-        # =============================================================
-        is_tp1_trigger = False
-        if not pos.tp1_hit:
-            if pos.side == "LONG" and high >= pos.tp1_price:
-                is_tp1_trigger = True
-                tp1_exit_price = pos.tp1_price * (1.0 - slip)
-            elif pos.side == "SHORT" and low <= pos.tp1_price:
-                is_tp1_trigger = True
-                tp1_exit_price = pos.tp1_price * (1.0 + slip)
-
-        if is_tp1_trigger:
-            close_ratio = self.risk_cfg.tp1_close_ratio  # e.g., 50%
-            partial_size = pos.size * close_ratio
-            partial_margin = pos.isolated_margin * close_ratio
-
-            exit_notional = partial_size * tp1_exit_price
-            exit_fee = exit_notional * self.paper_cfg.taker_fee_pct
-
-            if pos.side == "LONG":
-                gross_pnl = (tp1_exit_price - pos.entry_price) * partial_size
-            else:
-                gross_pnl = (pos.entry_price - tp1_exit_price) * partial_size
-
-            net_pnl = gross_pnl - exit_fee
-
-            # Return partial margin + partial profit
-            self.balance += (partial_margin + net_pnl)
-            self.realized_pnl_total += net_pnl
-            self.total_fees_paid += exit_fee
-
-            # Update remaining position
-            pos.size -= partial_size
-            pos.isolated_margin -= partial_margin
-            pos.tp1_hit = True
-
-            # Move Stop-Loss to Entry Price (Break-Even Stop)
-            if self.risk_cfg.move_sl_to_be_on_tp1:
-                pos.sl_price = pos.entry_price
-                logger.info(f"[{symbol}] TP1 Hit! Moved Stop-Loss to Breakeven (${pos.entry_price:.4f})")
-
-            # Record partial execution order
-            self._record_order(
-                order_id=f"TP1-{str(uuid.uuid4())[:8]}",
-                trade_id=pos.position_id,
-                symbol=symbol,
-                order_type="TAKE_PROFIT_1",
-                side="SELL" if pos.side == "LONG" else "BUY",
-                price=tp1_exit_price,
-                size=partial_size,
-                fee=exit_fee
-            )
-            self._persist_wallet_state()
-
-            roi = (net_pnl / partial_margin) * 100.0 if partial_margin > 0 else 0.0
-            event = {
-                "type": "TP1_PARTIAL",
-                "symbol": symbol,
-                "side": pos.side,
-                "exit_price": tp1_exit_price,
-                "pnl": net_pnl,
-                "roi": roi,
-                "remaining_size": pos.size,
-                "time": datetime.now(timezone.utc).strftime("%H:%M:%S")
-            }
-            self.recent_events.append(event)
-            actions.append(event)
-            logger.info(
-                f"TAKE-PROFIT 1 HIT: {symbol} {pos.side} closed {close_ratio*100:.0f}% at ${tp1_exit_price:.4f} | "
-                f"Realized PnL: ${net_pnl:.2f} ({roi:.2f}%)"
-            )
-
-        # =============================================================
-        # 4. TAKE-PROFIT 2 CHECK (Full Exit of Remaining Position)
+        # 2. TAKE-PROFIT 2 CHECK (Full Exit of Remaining Position)
         # =============================================================
         is_tp2_trigger = False
         if pos.tp1_hit:
@@ -590,11 +487,168 @@ class PaperExecutionEngine:
                 "time": datetime.now(timezone.utc).strftime("%H:%M:%S")
             }
             self.recent_events.append(event)
-            actions.append(event)
             logger.info(
                 f"TAKE-PROFIT 2 FULL EXIT: {symbol} {pos.side} closed remaining at ${tp2_exit_price:.4f} | "
                 f"Realized PnL: ${net_pnl:.2f} ({roi:.2f}%)"
             )
+            return [event]
+
+        # =============================================================
+        # 3. TAKE-PROFIT 1 CHECK (Partial Close + Move SL to Breakeven)
+        # =============================================================
+        is_tp1_trigger = False
+        if not pos.tp1_hit:
+            if pos.side == "LONG" and high >= pos.tp1_price:
+                is_tp1_trigger = True
+                tp1_exit_price = pos.tp1_price * (1.0 - slip)
+            elif pos.side == "SHORT" and low <= pos.tp1_price:
+                is_tp1_trigger = True
+                tp1_exit_price = pos.tp1_price * (1.0 + slip)
+
+        if is_tp1_trigger:
+            close_ratio = self.risk_cfg.tp1_close_ratio
+            partial_size = pos.size * close_ratio
+            partial_margin = pos.isolated_margin * close_ratio
+
+            exit_notional = partial_size * tp1_exit_price
+            exit_fee = exit_notional * self.paper_cfg.taker_fee_pct
+
+            if pos.side == "LONG":
+                gross_pnl = (tp1_exit_price - pos.entry_price) * partial_size
+            else:
+                gross_pnl = (pos.entry_price - tp1_exit_price) * partial_size
+
+            net_pnl = gross_pnl - exit_fee
+
+            # Return partial margin + partial profit
+            self.balance += (partial_margin + net_pnl)
+            self.realized_pnl_total += net_pnl
+            self.total_fees_paid += exit_fee
+
+            # Update remaining position
+            pos.size -= partial_size
+            pos.isolated_margin -= partial_margin
+            pos.tp1_hit = True
+
+            # Move Stop-Loss to Entry Price (Break-Even Stop)
+            if self.risk_cfg.move_sl_to_be_on_tp1:
+                pos.sl_price = pos.entry_price
+                logger.info(f"[{symbol}] TP1 Hit! Moved Stop-Loss to Breakeven (${pos.entry_price:.4f})")
+
+            # Activate dynamic ATR trailing stop for remaining runner position
+            if self.risk_cfg.trailing_stop_enabled:
+                pos.trailing_stop_active = True
+                pos.highest_price = max(pos.highest_price, tp1_exit_price)
+                pos.lowest_price = min(pos.lowest_price, tp1_exit_price)
+                logger.info(f"[{symbol}] ATR Trailing Stop Activated! Ratcheting behind peak by {self.risk_cfg.trailing_stop_atr_multiplier}x ATR")
+
+            # Record partial execution order
+            self._record_order(
+                order_id=f"TP1-{str(uuid.uuid4())[:8]}",
+                trade_id=pos.position_id,
+                symbol=symbol,
+                order_type="TAKE_PROFIT_1",
+                side="SELL" if pos.side == "LONG" else "BUY",
+                price=tp1_exit_price,
+                size=partial_size,
+                fee=exit_fee
+            )
+            self._persist_wallet_state()
+
+            roi = (net_pnl / partial_margin) * 100.0 if partial_margin > 0 else 0.0
+            event = {
+                "type": "TP1_PARTIAL",
+                "symbol": symbol,
+                "side": pos.side,
+                "exit_price": tp1_exit_price,
+                "pnl": net_pnl,
+                "roi": roi,
+                "remaining_size": pos.size,
+                "time": datetime.now(timezone.utc).strftime("%H:%M:%S")
+            }
+            self.recent_events.append(event)
+            actions.append(event)
+            logger.info(
+                f"TAKE-PROFIT 1 HIT: {symbol} {pos.side} closed {close_ratio*100:.0f}% at ${tp1_exit_price:.4f} | "
+                f"Realized PnL: ${net_pnl:.2f} ({roi:.2f}%)"
+            )
+            return actions
+
+        # =============================================================
+        # 4. DYNAMIC ATR TRAILING STOP RATCHET
+        # =============================================================
+        pos.highest_price = max(pos.highest_price, high)
+        pos.lowest_price = min(pos.lowest_price, low)
+
+        if pos.trailing_stop_active and self.risk_cfg.trailing_stop_enabled:
+            trail_dist = (self.risk_cfg.trailing_stop_atr_multiplier * pos.atr) if pos.atr > 0 else (pos.entry_price * 0.015)
+            if pos.side == "LONG":
+                ratchet_sl = pos.highest_price - trail_dist
+                if ratchet_sl > pos.sl_price:
+                    pos.sl_price = ratchet_sl
+                    logger.debug(f"[{symbol}] Ratcheted LONG Trailing Stop up to ${ratchet_sl:.4f}")
+            elif pos.side == "SHORT":
+                ratchet_sl = pos.lowest_price + trail_dist
+                if ratchet_sl < pos.sl_price:
+                    pos.sl_price = ratchet_sl
+                    logger.debug(f"[{symbol}] Ratcheted SHORT Trailing Stop down to ${ratchet_sl:.4f}")
+
+        # =============================================================
+        # 5. STOP-LOSS CHECK (Includes ATR Trailing Stop & Breakeven)
+        # =============================================================
+        is_sl_hit = False
+        if pos.side == "LONG" and low <= pos.sl_price:
+            is_sl_hit = True
+            exit_price = pos.sl_price * (1.0 - slip)  # adverse slippage
+        elif pos.side == "SHORT" and high >= pos.sl_price:
+            is_sl_hit = True
+            exit_price = pos.sl_price * (1.0 + slip)
+
+        if is_sl_hit:
+            exit_notional = pos.size * exit_price
+            exit_fee = exit_notional * self.paper_cfg.taker_fee_pct
+
+            # Calculate PnL
+            if pos.side == "LONG":
+                gross_pnl = (exit_price - pos.entry_price) * pos.size
+            else:
+                gross_pnl = (pos.entry_price - exit_price) * pos.size
+
+            net_pnl = gross_pnl - exit_fee
+            # Return remaining margin + net PnL back to balance
+            self.balance += (pos.isolated_margin + net_pnl)
+            self.realized_pnl_total += net_pnl
+            self.total_fees_paid += exit_fee
+
+            roi = (net_pnl / pos.isolated_margin) * 100.0 if pos.isolated_margin > 0 else 0.0
+
+            exit_reason = "TRAILING_STOP" if pos.trailing_stop_active else ("BREAKEVEN_STOP" if pos.tp1_hit else "STOP_LOSS")
+
+            self._record_trade_close(
+                pos=pos,
+                exit_price=exit_price,
+                realized_pnl=net_pnl,
+                exit_reason=exit_reason,
+                exit_fee=exit_fee
+            )
+            del self.positions[symbol]
+            self._persist_wallet_state()
+
+            event = {
+                "type": exit_reason,
+                "symbol": symbol,
+                "side": pos.side,
+                "exit_price": exit_price,
+                "pnl": net_pnl,
+                "roi": roi,
+                "time": datetime.now(timezone.utc).strftime("%H:%M:%S")
+            }
+            self.recent_events.append(event)
+            logger.info(
+                f"{exit_reason} TRIGGERED: {symbol} {pos.side} at ${exit_price:.4f} | "
+                f"PnL: ${net_pnl:.2f} ({roi:.2f}%) | Returned Margin: ${pos.isolated_margin:.2f}"
+            )
+            return [event]
 
         return actions
 
@@ -781,3 +835,116 @@ class PaperExecutionEngine:
             "max_drawdown_pct": max_dd_pct,
             "open_positions_count": len(self.positions),
         }
+
+    def get_recent_closed_trades(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Retrieve recent closed trades from SQLite for dashboard display."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT trade_id, symbol, side, entry_price, exit_price, size,
+                           leverage, entry_margin, realized_pnl, roi_pct, fees_paid,
+                           exit_reason, entry_time, exit_time, duration_sec
+                    FROM trades ORDER BY exit_time DESC LIMIT ?
+                """, (limit,))
+                rows = cursor.fetchall()
+                return [dict(r) for r in rows]
+        except Exception as e:
+            logger.error(f"Error fetching closed trades: {e}")
+            return []
+
+    def get_chart_markers(self, symbol: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Extract visual trade markers to display directly on the candlestick chart."""
+        markers: List[Dict[str, Any]] = []
+
+        # 1. Closed Trades markers from SQLite
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                query = "SELECT * FROM trades"
+                params = ()
+                if symbol:
+                    clean_sym = symbol.split(":")[0]
+                    query += " WHERE symbol LIKE ?"
+                    params = (f"%{clean_sym}%",)
+                query += " ORDER BY entry_time ASC LIMIT 60"
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+
+                for r in rows:
+                    try:
+                        entry_dt = datetime.fromisoformat(r["entry_time"])
+                        entry_ts = int(entry_dt.timestamp() * 1000)
+                        exit_dt = datetime.fromisoformat(r["exit_time"])
+                        exit_ts = int(exit_dt.timestamp() * 1000)
+
+                        side = r["side"]
+                        pnl = float(r["realized_pnl"])
+                        is_win = pnl >= 0
+
+                        # Entry marker
+                        markers.append({
+                            "id": f"entry-{r['trade_id']}",
+                            "timestamp": entry_ts,
+                            "price": float(r["entry_price"]),
+                            "type": "ENTRY",
+                            "side": side,
+                            "shape": "arrowUp" if side == "LONG" else "arrowDown",
+                            "color": "#0ecb81" if side == "LONG" else "#f6465d",
+                            "text": f"ENTRY {side} ({r['size']})"
+                        })
+
+                        # Exit marker
+                        markers.append({
+                            "id": f"exit-{r['trade_id']}",
+                            "timestamp": exit_ts,
+                            "price": float(r["exit_price"]),
+                            "type": "EXIT",
+                            "side": side,
+                            "shape": "circle",
+                            "color": "#0ecb81" if is_win else "#f6465d",
+                            "text": f"{r['exit_reason']} ${pnl:+.2f} ({r['roi_pct']:+.1f}%)"
+                        })
+                    except Exception:
+                        continue
+        except Exception as e:
+            logger.debug(f"Error reading markers: {e}")
+
+        # 2. Active position markers
+        for sym, pos in self.positions.items():
+            if symbol and symbol.split(":")[0] not in sym:
+                continue
+            markers.append({
+                "id": f"active-{pos.position_id}",
+                "timestamp": int(pos.entry_time * 1000),
+                "price": pos.entry_price,
+                "type": "ACTIVE_ENTRY",
+                "side": pos.side,
+                "shape": "arrowUp" if pos.side == "LONG" else "arrowDown",
+                "color": "#0ecb81" if pos.side == "LONG" else "#f6465d",
+                "text": f"ACTIVE {pos.side} @ ${pos.entry_price:.4f}"
+            })
+
+        return markers
+
+    def reset_account(self, new_balance: float = 5.0) -> None:
+        """Reset virtual wallet to new balance (e.g. $5.00) and wipe positions."""
+        self.balance = new_balance
+        self.initial_balance = new_balance
+        self.realized_pnl_total = 0.0
+        self.total_fees_paid = 0.0
+        self.peak_equity = new_balance
+        self.positions.clear()
+        self.recent_events.clear()
+
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM trades")
+                cursor.execute("DELETE FROM orders")
+                cursor.execute("DELETE FROM equity_history")
+                conn.commit()
+            self._persist_wallet_state()
+            logger.info(f"Paper sandbox reset to ${new_balance:.2f} virtual USDT.")
+        except Exception as e:
+            logger.error(f"Error resetting database: {e}")

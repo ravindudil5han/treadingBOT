@@ -25,6 +25,11 @@
     "vol_sma_ratio",
     "vol_spike_zscore",
     "obv_roc_5",
+    "ofi_ratio",
+    "dist_vwap",
+    "vwap_zscore",
+    "ker",
+    "garman_klass_vol",
     "body_ratio",
     "upper_shadow_ratio",
     "lower_shadow_ratio",
@@ -35,13 +40,17 @@
     "htf_rsi"
   ],
   "eval_metrics": {
-    "test_accuracy": 0.26666666666666666,
-    "test_log_loss": 1.3406018018722534,
-    "high_conf_samples": 6,
+    "test_accuracy": 0.3333333333333333,
+    "xgb_accuracy": 0.31666666666666665,
+    "rf_accuracy": 0.26666666666666666,
+    "et_accuracy": 0.25,
+    "test_log_loss": 1.2096854893387126,
+    "high_conf_samples": 0,
     "high_conf_accuracy": 0.0,
     "train_samples": 240,
     "test_samples": 60
   },
-  "last_trained_time": 1791438203.3324125,
-  "train_bars_count": 300
+  "last_trained_time": 1791442261.4847395,
+  "train_bars_count": 300,
+  "has_ensemble": true
 }

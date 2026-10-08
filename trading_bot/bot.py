@@ -15,6 +15,7 @@ import sys
 import time
 import signal
 import logging
+import threading
 from typing import List, Dict, Optional, Any
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,6 +35,7 @@ from trading_bot.feature_engine import FeatureEngine
 from trading_bot.ml_model import MultiSymbolMLManager, SignalPrediction
 from trading_bot.risk_manager import RiskManager, TradeOrderSignal
 from trading_bot.paper_engine import PaperExecutionEngine, PaperPosition
+from trading_bot.web_server import create_app
 
 # Ensure clean UTF-8 stream handling on Windows
 if sys.platform.startswith("win"):
@@ -155,11 +157,15 @@ class TradingBot:
 
                 metrics = self.ml_manager.train_or_update(symbol, X, y)
                 test_acc = metrics.get("test_accuracy", 0.0) * 100.0
+                xgb_acc = metrics.get("xgb_accuracy", test_acc / 100.0) * 100.0
+                rf_acc = metrics.get("rf_accuracy", 0.0) * 100.0
+                et_acc = metrics.get("et_accuracy", 0.0) * 100.0
                 high_conf_acc = metrics.get("high_conf_accuracy", 0.0) * 100.0
                 high_conf_samples = metrics.get("high_conf_samples", 0)
 
                 self.console.print(
-                    f"    [green][+] Trained {symbol}[/green] | Test Acc: [bold]{test_acc:.1f}%[/bold] | "
+                    f"    [green][+] Trained Ensemble for {symbol}[/green] | Consensus Acc: [bold]{test_acc:.1f}%[/bold] "
+                    f"(XGB: {xgb_acc:.1f}%, RF: {rf_acc:.1f}%, ET: {et_acc:.1f}%) | "
                     f"High-Conf Acc (>{self.cfg.ml.confidence_threshold*100:.0f}%): [bold]{high_conf_acc:.1f}%[/bold] ({high_conf_samples} samples)"
                 )
             except Exception as e:
@@ -230,7 +236,8 @@ class TradingBot:
                         )
                         existing_dir = None
 
-                    # Evaluate Risk Manager trade parameters
+                    # Evaluate Risk Manager trade parameters with Sniper Confluence check
+                    features_dict = X_latest.iloc[0].to_dict() if not X_latest.empty else {}
                     signal_params: TradeOrderSignal = self.risk_manager.generate_trade_parameters(
                         prediction=prediction,
                         entry_price=latest_close,
@@ -239,7 +246,8 @@ class TradingBot:
                         available_balance=self.paper_engine.get_available_balance(),
                         open_positions_count=len(self.paper_engine.positions),
                         total_open_margin=self.paper_engine.get_allocated_margin(),
-                        existing_symbol_position=existing_dir
+                        existing_symbol_position=existing_dir,
+                        features_dict=features_dict
                     )
 
                     if signal_params.is_valid:
@@ -395,29 +403,31 @@ class TradingBot:
         return layout
 
     def _build_market_watch_panel(self) -> Panel:
-        """Build table of screened market watch coins with latest price, volume, and ML confidence."""
+        """Build table of screened market watch coins with alpha metrics and ensemble consensus."""
         table = Table(box=box.SIMPLE, expand=True)
         table.add_column("Symbol", style="bold white")
         table.add_column("Price", justify="right")
-        table.add_column("24h Vol USDT", justify="right")
-        table.add_column("ATR Vol %", justify="right")
+        table.add_column("KER (Trend)", justify="right")
+        table.add_column("RVOL", justify="right")
+        table.add_column("Alpha Score", justify="right")
         table.add_column("ML Signal", justify="center")
-        table.add_column("Confidence", justify="right")
+        table.add_column("Consensus", justify="right")
 
         for sym in self.active_symbols:
             m_data = self.latest_market_data.get(sym, {})
             price = m_data.get("last", 0.0)
-            vol = m_data.get("quote_volume", 0.0)
 
-            # Volatility from screener or default
+            # Volatility & alpha from screener
             meta = self.screened_assets_meta.get(sym)
-            atr_pct = meta.atr_pct if meta else 1.8
+            ker_str = f"{meta.ker:.2f}" if meta else "-"
+            rvol_str = f"{meta.rvol:.1f}x" if meta else "1.0x"
+            score_str = f"{meta.composite_score:.2f}" if meta else "-"
 
             pred = self.latest_predictions.get(sym)
             if pred:
                 dir_style = "bold green" if pred.direction == "LONG" else ("bold red" if pred.direction == "SHORT" else "dim")
                 sig_str = f"[{dir_style}]{pred.direction}[/{dir_style}]"
-                conf_str = f"{pred.confidence*100:.1f}%"
+                conf_str = f"{pred.confidence*100:.1f}% ({int(pred.consensus_ratio*100)}%)"
                 if pred.threshold_met:
                     conf_str = f"[bold green]{conf_str} [SIGNAL][/bold green]"
             else:
@@ -427,19 +437,47 @@ class TradingBot:
             table.add_row(
                 sym,
                 f"${price:.4f}" if price > 0 else "-",
-                f"${vol:,.0f}" if vol > 0 else "-",
-                f"{atr_pct:.2f}%",
+                ker_str,
+                rvol_str,
+                score_str,
                 sig_str,
                 conf_str
             )
 
-        return Panel(table, title="[bold magenta][WATCH] Market Watch & Real-Time ML Predictions[/bold magenta]", box=box.ROUNDED)
+        return Panel(table, title="[bold magenta][WATCH] Institutional Screener & Ensemble ML Predictions[/bold magenta]", box=box.ROUNDED)
+
+    def get_uptime(self) -> float:
+        """Elapsed bot uptime in seconds."""
+        return time.time() - self.start_time
 
     def start(self) -> None:
         """Main execution loop running sub-minute tick evaluation and scheduled ML inference."""
         self.setup_signal_handlers()
         setup_bot_logging(self.cfg)
         self.initialize_market_universe()
+
+        # Start Web Server in background daemon thread if enabled
+        if self.cfg.web.enabled:
+            def run_web():
+                try:
+                    flask_app = create_app(self)
+                    # Suppress standard werkzeug request logs to keep terminal clean
+                    import logging as _logging
+                    _logging.getLogger("werkzeug").setLevel(_logging.ERROR)
+                    flask_app.run(
+                        host=self.cfg.web.host,
+                        port=self.cfg.web.port,
+                        debug=False,
+                        use_reloader=False
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to start web server on port {self.cfg.web.port}: {e}")
+
+            web_thread = threading.Thread(target=run_web, daemon=True)
+            web_thread.start()
+            self.console.print(
+                f"[bold green]🌐 Modern Binance Web UI live at: http://localhost:{self.cfg.web.port}[/bold green]"
+            )
 
         self.is_running = True
         logger.info("Starting production trading loop...")

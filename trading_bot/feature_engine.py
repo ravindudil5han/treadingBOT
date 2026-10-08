@@ -118,7 +118,7 @@ class FeatureEngine:
         data["adx_diff"] = data["adx_pos"] - data["adx_neg"]
 
         # -------------------------------------------------------------
-        # 4. Volume Indicators
+        # 4. Volume & Microstructure Indicators
         # -------------------------------------------------------------
         vol_sma = data["volume"].rolling(self.cfg.volume_ma_window).mean()
         vol_std = data["volume"].rolling(self.cfg.volume_ma_window).std()
@@ -130,10 +130,35 @@ class FeatureEngine:
         obv = ta.volume.OnBalanceVolumeIndicator(close=data["close"], volume=data["volume"]).on_balance_volume()
         data["obv_roc_5"] = obv.pct_change(5)
 
+        # Order Flow Volume Imbalance Proxy (Buying vs Selling aggression)
+        candle_range = (data["high"] - data["low"]).replace(0, 1e-8)
+        ofi = data["volume"] * ((data["close"] - data["low"]) - (data["high"] - data["close"])) / candle_range
+        data["ofi_ratio"] = ofi / (vol_sma + 1e-8)
+
+        # Rolling VWAP & Standard Deviation Distance Bands
+        typical_price = (data["high"] + data["low"] + data["close"]) / 3.0
+        tp_vol = typical_price * data["volume"]
+        rolling_tp_vol = tp_vol.rolling(self.cfg.vwap_window).sum()
+        rolling_vol = data["volume"].rolling(self.cfg.vwap_window).sum()
+        data["vwap"] = rolling_tp_vol / (rolling_vol + 1e-8)
+        data["dist_vwap"] = (data["close"] - data["vwap"]) / (data["close"] + 1e-8)
+        vwap_std = data["close"].rolling(self.cfg.vwap_window).std()
+        data["vwap_zscore"] = (data["close"] - data["vwap"]) / (vwap_std + 1e-8)
+
+        # Kaufman's Efficiency Ratio (Purity of trend vs random sideways chop)
+        change_ker = (data["close"] - data["close"].shift(self.cfg.ker_window)).abs()
+        path_ker = data["close"].diff().abs().rolling(self.cfg.ker_window).sum()
+        data["ker"] = change_ker / (path_ker + 1e-9)
+
+        # Garman-Klass Volatility Estimator (Intra-candle High/Low/Open/Close efficiency)
+        log_hl = np.log(data["high"] / (data["low"] + 1e-8))
+        log_co = np.log(data["close"] / (data["open"] + 1e-8))
+        gk_variance = 0.5 * (log_hl ** 2) - (2.0 * np.log(2.0) - 1.0) * (log_co ** 2)
+        data["garman_klass_vol"] = np.sqrt(np.maximum(0.0, gk_variance.rolling(self.cfg.garman_klass_window).mean()))
+
         # -------------------------------------------------------------
         # 5. Price Action & Candle Geometry
         # -------------------------------------------------------------
-        candle_range = (data["high"] - data["low"]).replace(0, 1e-8)
         body = (data["close"] - data["open"]).abs()
         data["body_ratio"] = body / candle_range
 
@@ -173,8 +198,8 @@ class FeatureEngine:
         # Replace infinities with NaNs
         data.replace([np.inf, -np.inf], np.nan, inplace=True)
 
-        # Store feature columns list (excluding raw OHLCV and labels)
-        exclude_cols = {"timestamp", "datetime", "open", "high", "low", "close", "volume", "target", "fwd_return"}
+        # Store feature columns list (excluding raw OHLCV, price levels, and labels)
+        exclude_cols = {"timestamp", "datetime", "open", "high", "low", "close", "volume", "target", "fwd_return", "vwap"}
         self._feature_cols = [c for c in data.columns if c not in exclude_cols and not c.startswith("ema_")]
         # Note: we exclude raw EMA price levels (e.g. ema_9, ema_21) and keep normalized dist_ema_* and spreads
         # to ensure scale invariance across various coin price levels!

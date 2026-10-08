@@ -34,6 +34,18 @@ class ScreenerConfig(BaseModel):
         default=1.2,
         description="Minimum 14-period ATR volatility as % of price to filter stagnant tokens"
     )
+    min_ker: float = Field(
+        default=0.20,
+        description="Minimum Kaufman Efficiency Ratio to ensure directional persistence over random chop"
+    )
+    rvol_window: int = Field(
+        default=20,
+        description="Rolling window to measure Relative Volume (RVOL)"
+    )
+    use_institutional_ranking: bool = Field(
+        default=True,
+        description="Combine KER, RVOL, ATR%, and Funding Rate Disparity into an Alpha Score"
+    )
     blacklist: List[str] = Field(
         default_factory=lambda: [
             "USDC/USDT", "FDUSD/USDT", "TUSD/USDT", "BUSD/USDT", "DAI/USDT",
@@ -71,16 +83,21 @@ class FeatureConfig(BaseModel):
     atr_window: int = Field(default=14, description="ATR lookback period")
     bb_window: int = Field(default=20, description="Bollinger Bands lookback")
     bb_std: float = Field(default=2.0, description="Bollinger Bands standard deviation multiplier")
+    garman_klass_window: int = Field(default=14, description="Garman-Klass volatility window")
     # Trend
     ema_windows: List[int] = Field(default_factory=lambda: [9, 21, 50, 200], description="EMA moving average lengths")
     adx_window: int = Field(default=14, description="ADX directional strength period")
-    # Volume
+    ker_window: int = Field(default=10, description="Kaufman Efficiency Ratio window")
+    # Volume & Microstructure
     volume_ma_window: int = Field(default=20, description="Volume simple moving average period")
+    vwap_window: int = Field(default=30, description="Rolling VWAP and deviation bands lookback")
 
 
 class MLConfig(BaseModel):
-    """XGBoost directional signal classifier hyperparameters."""
-    model_type: str = Field(default="xgboost", description="ML framework: xgboost")
+    """Machine Learning directional signal classifier hyperparameters."""
+    model_type: str = Field(default="ensemble", description="ML framework: xgboost, random_forest, or ensemble")
+    use_ensemble: bool = Field(default=True, description="Stacking Ensemble: XGBoost + Random Forest + Extra Trees")
+    consensus_required: bool = Field(default=True, description="Require consensus agreement between constituent models")
     confidence_threshold: float = Field(
         default=0.65,
         ge=0.50,
@@ -93,7 +110,7 @@ class MLConfig(BaseModel):
     )
     horizon_bars: int = Field(default=1, description="Bars into the future for target return calculation")
     train_test_split_ratio: float = Field(default=0.80, description="Walk-forward train split ratio")
-    n_estimators: int = Field(default=120, description="Number of gradient boosted trees")
+    n_estimators: int = Field(default=120, description="Number of trees per model")
     max_depth: int = Field(default=4, description="Maximum tree depth to prevent overfitting")
     learning_rate: float = Field(default=0.04, description="XGBoost shrinkage learning rate")
     subsample: float = Field(default=0.85, description="Subsample ratio of the training instances")
@@ -104,25 +121,32 @@ class MLConfig(BaseModel):
 
 class RiskConfig(BaseModel):
     """Quantitative risk management and capital allocation."""
-    initial_balance: float = Field(default=10000.0, ge=100.0, description="Virtual USDT wallet balance")
+    initial_balance: float = Field(default=5.0, ge=1.0, description="Virtual USDT wallet balance ($5 micro-start)")
     max_risk_per_trade_pct: float = Field(
-        default=0.015,
+        default=0.03,
         ge=0.001,
-        le=0.05,
-        description="Risk per trade as fraction of equity (e.g. 0.015 = 1.5%)"
+        le=0.20,
+        description="Risk per trade as fraction of equity (e.g. 0.03 = 3%)"
     )
-    max_open_positions: int = Field(default=3, ge=1, le=10, description="Maximum simultaneous open positions")
+    max_open_positions: int = Field(default=2, ge=1, le=10, description="Maximum simultaneous open positions")
     max_portfolio_exposure_pct: float = Field(
-        default=0.75,
+        default=0.90,
         description="Max total isolated margin allocated as fraction of total equity"
     )
-    min_leverage: int = Field(default=2, ge=1, description="Minimum recommended leverage")
-    max_leverage: int = Field(default=8, le=20, description="Maximum recommended leverage")
-    atr_sl_multiplier: float = Field(default=1.5, description="ATR multiplier for dynamic stop-loss distance")
-    tp1_risk_reward: float = Field(default=1.5, description="Risk:Reward multiple for partial Take-Profit 1")
+    min_notional_usd: float = Field(default=5.0, description="Binance Futures minimum contract notional ($5)")
+    micro_account_mode: bool = Field(default=True, description="Adaptive position sizing for small accounts (<= $25)")
+    sniper_mode: bool = Field(default=True, description="Ultra-high accuracy multi-confluence filter (XGBoost + Trend + Momentum)")
+    macro_trend_filter: bool = Field(default=True, description="Require alignment with EMA 50 / EMA 200 macro trend")
+    adx_threshold: float = Field(default=20.0, description="Minimum ADX trend strength to avoid chopping ranges")
+    min_leverage: int = Field(default=3, ge=1, description="Minimum recommended leverage")
+    max_leverage: int = Field(default=10, le=20, description="Maximum recommended leverage")
+    atr_sl_multiplier: float = Field(default=1.8, description="ATR multiplier for structural stop-loss distance")
+    tp1_risk_reward: float = Field(default=1.2, description="Risk:Reward multiple for partial Take-Profit 1")
     tp2_risk_reward: float = Field(default=2.5, description="Risk:Reward multiple for full Take-Profit 2")
     tp1_close_ratio: float = Field(default=0.50, description="Portion of position closed at TP1 (e.g., 50%)")
     move_sl_to_be_on_tp1: bool = Field(default=True, description="Move SL to break-even entry price once TP1 is hit")
+    trailing_stop_enabled: bool = Field(default=True, description="Enable dynamic ATR Trailing Stop once TP1 is hit")
+    trailing_stop_atr_multiplier: float = Field(default=1.2, description="ATR distance to trail price behind market peak")
 
 
 class PaperEngineConfig(BaseModel):
@@ -142,6 +166,13 @@ class DashboardConfig(BaseModel):
     log_level: str = Field(default="INFO", description="Console and file log level")
 
 
+class WebServerConfig(BaseModel):
+    """Modern Binance-style Web UI & REST API configuration."""
+    enabled: bool = Field(default=True, description="Enable local web dashboard")
+    host: str = Field(default="0.0.0.0", description="Web server bind host")
+    port: int = Field(default=8080, description="Web server bind port (e.g. 8080)")
+
+
 class BotConfig(BaseModel):
     """Master application configuration aggregate."""
     exchange: ExchangeConfig = Field(default_factory=ExchangeConfig)
@@ -152,6 +183,7 @@ class BotConfig(BaseModel):
     risk: RiskConfig = Field(default_factory=RiskConfig)
     paper: PaperEngineConfig = Field(default_factory=PaperEngineConfig)
     dashboard: DashboardConfig = Field(default_factory=DashboardConfig)
+    web: WebServerConfig = Field(default_factory=WebServerConfig)
 
     def ensure_directories(self) -> None:
         """Ensure necessary persistence directories exist."""
@@ -159,6 +191,7 @@ class BotConfig(BaseModel):
         db_parent.mkdir(parents=True, exist_ok=True)
         Path("models").mkdir(parents=True, exist_ok=True)
         Path("data").mkdir(parents=True, exist_ok=True)
+        Path("trading_bot/templates").mkdir(parents=True, exist_ok=True)
 
 
 # Default global instance

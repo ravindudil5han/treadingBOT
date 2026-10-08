@@ -53,20 +53,20 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--capital",
         type=float,
-        default=10000.0,
-        help="Initial virtual USDT wallet balance for paper trading"
+        default=5.0,
+        help="Initial virtual USDT wallet balance for paper trading (default: $5.00)"
     )
     parser.add_argument(
         "--risk-pct",
         type=float,
-        default=1.5,
-        help="Risk percentage per trade (e.g. 1.5 = 1.5%% of equity)"
+        default=3.0,
+        help="Risk percentage per trade (e.g. 3.0 = 3%% of equity)"
     )
     parser.add_argument(
         "--confidence",
         type=float,
-        default=0.65,
-        help="Strict probability confidence threshold for ML signals (e.g. 0.65 = 65%%)"
+        default=0.75,
+        help="Strict probability confidence threshold for ML signals (default: 0.75 = 75%%)"
     )
     parser.add_argument(
         "--timeframe",
@@ -79,6 +79,22 @@ def parse_arguments() -> argparse.Namespace:
         type=int,
         default=8,
         help="Maximum allowable dynamic leverage (clamped by risk manager)"
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="Port to serve modern Binance-style web dashboard on (default: 8080)"
+    )
+    parser.add_argument(
+        "--no-web",
+        action="store_true",
+        help="Disable built-in web dashboard server"
+    )
+    parser.add_argument(
+        "--no-sniper",
+        action="store_true",
+        help="Disable sniper multi-confluence filter (runs standard XGBoost threshold only)"
     )
     parser.add_argument(
         "--no-dashboard",
@@ -188,10 +204,13 @@ def main() -> None:
     cfg.risk.initial_balance = args.capital
     cfg.risk.max_risk_per_trade_pct = args.risk_pct / 100.0
     cfg.risk.max_leverage = args.max_leverage
+    cfg.risk.sniper_mode = not args.no_sniper
     cfg.ml.confidence_threshold = args.confidence
     cfg.data_feed.primary_timeframe = args.timeframe
     cfg.dashboard.show_dashboard = not args.no_dashboard
     cfg.exchange.use_testnet = args.testnet
+    cfg.web.enabled = not args.no_web
+    cfg.web.port = args.port
 
     # Parse symbols if specified
     explicit_symbols: Optional[List[str]] = None

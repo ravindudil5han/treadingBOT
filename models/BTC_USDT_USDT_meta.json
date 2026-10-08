@@ -36,12 +36,12 @@
   ],
   "eval_metrics": {
     "test_accuracy": 0.9666666666666667,
-    "test_log_loss": 0.17456261813640594,
+    "test_log_loss": 0.1712457686662674,
     "high_conf_samples": 60,
     "high_conf_accuracy": 0.9666666666666667,
     "train_samples": 240,
     "test_samples": 60
   },
-  "last_trained_time": 1791437581.8343997,
+  "last_trained_time": 1791439500.9364085,
   "train_bars_count": 300
 }

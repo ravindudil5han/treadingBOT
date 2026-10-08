@@ -37,21 +37,30 @@ Ensure Python 3.10+ is installed:
 pip install -r requirements.txt
 ```
 
-### 2. Immediate Paper Trading (Auto-Screener Mode)
+### 2. Immediate Paper Trading with Modern Binance Web UI ($5 Micro-Start)
 
-Start the bot immediately in paper trading mode. It will automatically scan the Binance Futures market, rank the top 5 high-volume and high-volatility coins, warm up buffers, train XGBoost classifiers, and run the live mock trading sandbox:
+Start the bot with the live interactive Binance-style Web Dashboard on `http://localhost:8080`:
 
 ```bash
-python main.py
+python main.py --capital 5 --port 8080
 ```
+Open **`http://localhost:8080`** in any web browser to view the real-time candlestick chart, future ML prediction cones, executed trade markers, and live $5 account compounding!
 
 ### 3. Trade Specific Symbols (e.g., BTC, ETH, SOL)
 
 ```bash
-python main.py --symbols BTC/USDT,ETH/USDT,SOL/USDT --capital 10000 --risk-pct 1.5
+python main.py --symbols BTC/USDT,ETH/USDT,SOL/USDT --capital 5 --port 8080
 ```
 
-### 4. Single-Shot Market Screener
+### 4. Sniper Mode (Ultra-High Accuracy Confluence Filter)
+
+Runs with the multi-confluence filter (XGBoost $\ge 75\%-80\%$, ADX trend filter, EMA 50/200 macro trend alignment, RSI exhaustion guard):
+
+```bash
+python main.py --capital 5 --confidence 0.80
+```
+
+### 5. Single-Shot Market Screener
 
 Run the coin screener once to inspect top ranked perpetual contracts:
 
@@ -59,7 +68,7 @@ Run the coin screener once to inspect top ranked perpetual contracts:
 python main.py --screen-only
 ```
 
-### 5. Offline Model Training & Walk-Forward Evaluation
+### 6. Offline Model Training & Walk-Forward Evaluation
 
 Train models on historical bars and evaluate out-of-sample accuracy across candidate coins:
 
